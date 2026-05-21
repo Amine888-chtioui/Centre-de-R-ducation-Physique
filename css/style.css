@@ -466,6 +466,7 @@ h6 {
   color: var(--blue-primary);
   line-height: 1;
   display: block;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
@@ -660,29 +661,34 @@ h6 {
   height: 100%;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
+
+  /* État initial – caché pour l'animation au scroll */
+  opacity: 0;
+  transform: translateY(32px);
+
+  /* Transition de base (hover) */
   transition:
     background var(--transition),
     border-color var(--transition),
     box-shadow var(--transition),
     transform var(--transition);
-  cursor: pointer;
-  /* scroll animation */
-  opacity: 0;
-  transform: translateY(24px);
 }
 
+/* État visible – déclenché par JS avec délai stagger */
 .service-card.visible {
   opacity: 1;
   transform: translateY(0);
+  /* On surcharge la transition pour l'entrée */
   transition:
-    opacity 0.5s ease,
-    transform 0.5s ease,
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
     background var(--transition),
     border-color var(--transition),
     box-shadow var(--transition);
 }
 
-/* Blue top border on hover */
+/* Barre bleue en haut – hover */
 .service-card::before {
   content: "";
   position: absolute;
@@ -696,14 +702,33 @@ h6 {
   transition: transform var(--transition);
 }
 
+/* Barre bleue en bas – hover */
+.service-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--blue-primary);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--transition);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
 .service-card:hover {
   background: var(--white);
   border-color: rgba(47, 111, 237, 0.18);
   box-shadow: 0 14px 45px rgba(47, 111, 237, 0.12);
-  transform: translateY(-5px);
+  transform: translateY(-6px);
 }
 
 .service-card:hover::before {
+  transform: scaleX(1);
+}
+
+.service-card:hover::after {
   transform: scaleX(1);
 }
 
@@ -720,12 +745,14 @@ h6 {
   margin-bottom: 1.2rem;
   transition:
     background var(--transition),
-    color var(--transition);
+    color var(--transition),
+    transform var(--transition);
 }
 
 .service-card:hover .service-icon {
   background: var(--blue-primary);
   color: #fff;
+  transform: scale(1.08) rotate(-4deg);
 }
 
 .service-title {
@@ -772,6 +799,16 @@ h6 {
 
 .about-img-wrap {
   position: relative;
+  opacity: 0;
+  transform: translateX(-24px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+
+.about-img-wrap.visible {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .about-img {
@@ -870,6 +907,9 @@ h6 {
   font-weight: 800;
   line-height: 1;
   margin-bottom: 0.35rem;
+  font-variant-numeric: tabular-nums;
+  /* Légère animation d'entrée */
+  transition: transform 0.3s ease;
 }
 
 .stat-box__label {
@@ -1137,7 +1177,201 @@ h6 {
 }
 
 /* ────────────────────────────────────────
-   14. Animations / Keyframes
+   14. Section Localisation
+──────────────────────────────────────── */
+.section-localisation {
+  background: var(--gray-soft);
+  padding: 5rem 0;
+}
+
+/* Carte Maps */
+.loc-map-wrap {
+  position: relative;
+  height: 440px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  background: #e8edf2;
+}
+
+.loc-map-wrap iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.loc-map-open {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  color: var(--dark-text);
+  font-family: var(--font-head);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.14);
+  text-decoration: none;
+  transition:
+    box-shadow var(--transition),
+    transform var(--transition);
+}
+
+.loc-map-open:hover {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+  color: var(--blue-primary);
+}
+
+/* Fiche d'infos */
+.loc-info-card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  padding: 1.8rem 1.6rem;
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1.5px solid rgba(47, 111, 237, 0.08);
+}
+
+.loc-info-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 1.4rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid rgba(47, 111, 237, 0.1);
+}
+
+.loc-info-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--blue-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--blue-primary);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.loc-info-name {
+  font-family: var(--font-head);
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--dark-text);
+  line-height: 1.35;
+  margin: 0;
+}
+
+/* Liste des infos */
+.loc-info-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 1.4rem;
+}
+
+.loc-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(47, 111, 237, 0.06);
+}
+
+.loc-info-item:last-child {
+  border-bottom: none;
+}
+
+.loc-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.loc-item-icon--blue {
+  background: var(--blue-light);
+  color: var(--blue-primary);
+}
+
+.loc-item-icon--gray {
+  background: #f0f2f5;
+  color: var(--gray-text);
+}
+
+.loc-item-icon--yellow {
+  background: #fff8e1;
+  color: #f59e0b;
+}
+
+.loc-info-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loc-info-item strong {
+  font-family: var(--font-head);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--dark-text);
+}
+
+.loc-info-item span {
+  font-size: 0.8rem;
+  color: var(--gray-text);
+  line-height: 1.5;
+}
+
+/* Bouton Google Maps */
+.loc-btn-maps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--blue-primary);
+  color: #fff;
+  font-family: var(--font-head);
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(47, 111, 237, 0.3);
+  transition:
+    background var(--transition),
+    transform var(--transition),
+    box-shadow var(--transition);
+  margin-top: auto;
+}
+
+.loc-btn-maps:hover {
+  background: var(--blue-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(47, 111, 237, 0.4);
+  color: #fff;
+}
+
+/* ────────────────────────────────────────
+   15. Animations / Keyframes
 ──────────────────────────────────────── */
 @keyframes fadeInDown {
   from {
@@ -1192,7 +1426,7 @@ h6 {
 }
 
 /* ────────────────────────────────────────
-   15. Media Queries
+   16. Media Queries
 ──────────────────────────────────────── */
 
 /* Tablet */
@@ -1237,6 +1471,10 @@ h6 {
     right: 8px;
     bottom: -10px;
   }
+
+  .loc-map-wrap {
+    height: 320px;
+  }
 }
 
 /* Mobile */
@@ -1275,5 +1513,13 @@ h6 {
   .footer-bottom {
     flex-direction: column;
     text-align: center;
+  }
+
+  .loc-map-wrap {
+    height: 260px;
+  }
+
+  .loc-info-card {
+    padding: 1.4rem 1.2rem;
   }
 }

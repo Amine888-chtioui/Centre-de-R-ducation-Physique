@@ -1,3 +1,5 @@
+import { useScrollReveal, useStaggerReveal } from "../hooks/useAnimations";
+
 const LOCATION_QUERY = "Bouznika,+Maroc";
 const LOCATION_LABEL = "Bouznika, Maroc";
 const MAP_CENTER = "33.7894,-7.1597";
@@ -41,6 +43,11 @@ const infoItems = [
 ];
 
 export default function LocalisationSection() {
+  const headerRef = useScrollReveal();
+  const mapRef = useScrollReveal({ threshold: 0.1 });
+  const cardRef = useScrollReveal({ threshold: 0.1 });
+  const listRef = useStaggerReveal(infoItems.length, { delay: 90 });
+
   return (
     <section
       className="section-localisation"
@@ -48,20 +55,24 @@ export default function LocalisationSection() {
       aria-labelledby="loc-title"
     >
       <div className="container">
-        <header className="section-header text-center">
+        <header
+          className="section-header text-center reveal reveal--up"
+          ref={headerRef}
+        >
           <p className="section-tag">Localisation</p>
           <h2 className="section-title" id="loc-title">
             Nous <span className="text-blue">trouver</span>
           </h2>
-          <p className="section-subtitle mx-auto">
-            {LOCATION_LABEL}
-          </p>
+          <p className="section-subtitle mx-auto">{LOCATION_LABEL}</p>
         </header>
 
         <div className="row g-4 align-items-stretch">
           {/* Google Maps */}
           <div className="col-lg-8">
-            <div className="loc-map-wrap">
+            <div
+              className="loc-map-wrap reveal reveal--left"
+              ref={mapRef}
+            >
               <div className="loc-map-frame">
                 <iframe
                   src={MAP_EMBED_SRC}
@@ -87,7 +98,10 @@ export default function LocalisationSection() {
 
           {/* Info card */}
           <div className="col-lg-4">
-            <div className="loc-info-card">
+            <div
+              className="loc-info-card reveal reveal--right"
+              ref={cardRef}
+            >
               <div className="loc-info-header">
                 <span className="loc-info-icon" aria-hidden="true">
                   <i className="bi bi-geo-alt-fill"></i>
@@ -99,9 +113,13 @@ export default function LocalisationSection() {
                 </h3>
               </div>
 
-              <ul className="loc-info-list" aria-label="Informations pratiques">
+              <ul
+                className="loc-info-list"
+                aria-label="Informations pratiques"
+                ref={listRef}
+              >
                 {infoItems.map(({ iconClass, colorClass, label, value }) => (
-                  <li className="loc-info-item" key={label}>
+                  <li className="loc-info-item reveal-stagger-item" key={label}>
                     <span
                       className={`loc-item-icon ${colorClass}`}
                       aria-hidden="true"

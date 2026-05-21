@@ -1,4 +1,4 @@
-import { useStaggerReveal } from "../hooks/useAnimations";
+import { useScrollReveal, useStaggerReveal } from "../hooks/useAnimations";
 
 const services = [
   {
@@ -40,7 +40,10 @@ const services = [
 ];
 
 export default function ServicesSection() {
-  const containerRef = useStaggerReveal(services.length);
+  const containerRef = useStaggerReveal(services.length, {
+    selector: ".service-card",
+  });
+  const headerRef = useScrollReveal();
 
   return (
     <section
@@ -49,7 +52,10 @@ export default function ServicesSection() {
       aria-labelledby="services-title"
     >
       <div className="container">
-        <header className="section-header text-center">
+        <header
+          className="section-header text-center reveal reveal--up"
+          ref={headerRef}
+        >
           <p className="section-tag">Nos Services</p>
           <h2 className="section-title" id="services-title">
             Des soins adaptés à <span className="text-blue">chaque besoin</span>

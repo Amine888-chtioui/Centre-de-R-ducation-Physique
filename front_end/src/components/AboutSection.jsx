@@ -10,6 +10,7 @@ const features = [
 
 export default function AboutSection() {
   const imgRef = useScrollReveal({ threshold: 0.12 });
+  const textRef = useScrollReveal({ threshold: 0.1 });
 
   return (
     <section
@@ -21,7 +22,10 @@ export default function AboutSection() {
         <div className="row align-items-center g-5">
           {/* Image */}
           <div className="col-lg-5">
-            <div className="about-img-wrap" ref={imgRef}>
+            <div
+              className="about-img-wrap reveal reveal--left"
+              ref={imgRef}
+            >
               <img
                 src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&h=500&fit=crop"
                 alt="Salle de rééducation du centre physique"
@@ -38,7 +42,7 @@ export default function AboutSection() {
           </div>
 
           {/* Texte */}
-          <div className="col-lg-7">
+          <div className="col-lg-7 reveal reveal--right" ref={textRef}>
             <p className="section-tag">À propos de nous</p>
             <h2 className="section-title" id="about-title">
               Un centre dédié à votre

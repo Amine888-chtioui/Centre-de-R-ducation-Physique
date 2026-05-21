@@ -26,6 +26,12 @@
   --section-y: clamp(3.25rem, 6vw, 5rem);
   --container-pad: clamp(1rem, 4vw, 1.5rem);
   --nav-height: 72px;
+  --gradient-page: linear-gradient(
+    135deg,
+    var(--gray-soft) 0%,
+    var(--blue-light) 55%,
+    #d8eaff 100%
+  );
 }
 
 /* ────────────────────────────────────────
@@ -448,16 +454,49 @@ h6 {
   margin-bottom: 3rem;
 }
 
+/* Révélation au scroll / actualisation */
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal--up {
+  transform: translateY(28px);
+}
+
+.reveal--left {
+  transform: translateX(-24px);
+}
+
+.reveal--right {
+  transform: translateX(24px);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+.reveal-stagger-item {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-stagger-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ────────────────────────────────────────
    8. Section Hero
 ──────────────────────────────────────── */
 .section-hero {
-  background: linear-gradient(
-    135deg,
-    var(--gray-soft) 0%,
-    var(--blue-light) 55%,
-    #d8eaff 100%
-  );
+  background: var(--gradient-page);
   min-height: auto;
   position: relative;
   overflow: hidden;
@@ -581,43 +620,56 @@ h6 {
 
 .hero-stats {
   display: flex;
-  gap: 1.8rem;
+  align-items: stretch;
+  gap: 0;
   margin-top: 2.2rem;
-  flex-wrap: wrap;
+  width: 100%;
   max-width: 100%;
+  padding: 1.1rem 0.35rem;
+  background: transparent;
+  border-radius: var(--radius-md);
   animation: fadeInUp 0.7s ease 0.5s both;
 }
 
 .hero-stat {
-  text-align: left;
+  flex: 1 1 0;
   min-width: 0;
-  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  text-align: center;
+  padding: 0.25rem 0.4rem;
 }
 
 .stat-number {
   font-family: var(--font-head);
-  font-size: 1.5rem;
+  font-size: clamp(1.1rem, 4.2vw, 1.65rem);
   font-weight: 800;
   color: var(--blue-primary);
-  line-height: 1;
+  line-height: 1.1;
   display: block;
   font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
-  font-size: 0.72rem;
+  font-size: clamp(0.62rem, 2.6vw, 0.78rem);
   color: var(--gray-text);
   font-weight: 500;
-  margin-top: 3px;
+  line-height: 1.3;
   display: block;
+  text-align: center;
   overflow-wrap: break-word;
   hyphens: auto;
 }
 
 .stat-sep {
   width: 1px;
-  background: rgba(47, 111, 237, 0.2);
+  flex-shrink: 0;
+  background: rgba(47, 111, 237, 0.14);
   align-self: stretch;
+  margin: 0.2rem 0;
 }
 
 .hero-counter {
@@ -928,16 +980,6 @@ h6 {
   position: relative;
   padding-bottom: 1.5rem;
   padding-right: 0.5rem;
-  opacity: 0;
-  transform: translateX(-24px);
-  transition:
-    opacity 0.6s ease,
-    transform 0.6s ease;
-}
-
-.about-img-wrap.visible {
-  opacity: 1;
-  transform: translateX(0);
 }
 
 .about-img {
@@ -1587,7 +1629,8 @@ h6 {
   }
 
   .hero-visual {
-    margin-top: 2rem;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
     height: min(420px, 72vw);
     max-height: 420px;
   }
@@ -1686,26 +1729,7 @@ h6 {
   }
 
   .hero-stats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.65rem 0.4rem;
-    width: 100%;
-  }
-
-  .stat-sep {
-    display: none;
-  }
-
-  .hero-stat {
-    text-align: center;
-  }
-
-  .stat-number {
-    font-size: clamp(1rem, 4.5vw, 1.25rem);
-  }
-
-  .stat-label {
-    font-size: 0.65rem;
+    padding: 1rem 0.25rem;
   }
 
   .hero-title {
@@ -1731,34 +1755,12 @@ h6 {
   }
 
   .hero-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    align-items: stretch;
+    padding: 0.9rem 0.15rem;
+    border-radius: var(--radius-sm);
   }
 
   .hero-stat {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.75rem;
-    text-align: left;
-    padding: 0.65rem 0.85rem;
-    background: rgba(255, 255, 255, 0.55);
-    border-radius: var(--radius-sm);
-    border: 1px solid rgba(47, 111, 237, 0.08);
-  }
-
-  .hero-stat .stat-number {
-    flex-shrink: 0;
-    font-size: 1.25rem;
-  }
-
-  .hero-stat .stat-label {
-    flex: 1;
-    min-width: 0;
-    font-size: 0.78rem;
-    margin-top: 0;
+    padding: 0.2rem 0.25rem;
   }
 
   .hero-counter {
@@ -1879,6 +1881,13 @@ h6 {
 
   .doctor-ring--dashed {
     animation: none;
+  }
+
+  .reveal,
+  .reveal-stagger-item,
+  .service-card {
+    opacity: 1;
+    transform: none;
   }
 }
 /* ────────────────────────────────────────

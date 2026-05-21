@@ -25,8 +25,8 @@ export default function HeroSection() {
 
       <div className="container">
         <div className="row align-items-center g-5">
-          {/* LEFT – Texte */}
-          <div className="col-lg-6">
+          {/* LEFT – Texte (après l'image sur mobile) */}
+          <div className="col-lg-6 order-2 order-lg-1">
             <p className="hero-badge">
               <i className="bi bi-patch-check-fill" aria-hidden="true"></i>
               Centre agréé &amp; certifié
@@ -92,8 +92,8 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* RIGHT – Image médecin */}
-          <div className="col-lg-6">
+          {/* RIGHT – Image médecin (en premier sur mobile) */}
+          <div className="col-lg-6 order-1 order-lg-2">
             <div className="hero-visual" aria-hidden="true">
               <div className="doctor-ring doctor-ring--dashed"></div>
               <div className="doctor-ring doctor-ring--solid"></div>

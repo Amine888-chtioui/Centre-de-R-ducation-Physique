@@ -1,25 +1,54 @@
 import { useEffect, useRef } from "react";
 
+function revealElement(el, observer) {
+  el.classList.add("visible");
+  if (observer) observer.unobserve(el);
+}
+
+function isInViewport(el, threshold = 0.12) {
+  const rect = el.getBoundingClientRect();
+  const vh = window.innerHeight || document.documentElement.clientHeight;
+  const visibleHeight = Math.min(rect.bottom, vh) - Math.max(rect.top, 0);
+  return visibleHeight > 0 && visibleHeight / rect.height >= threshold;
+}
+
 /**
- * useScrollReveal – adds the "visible" class when the element enters the viewport.
- * @param {object} options – IntersectionObserver options
- * @returns ref to attach to the target element
+ * useScrollReveal – fade/slide in when the element enters the viewport (or on load if already visible).
  */
-export function useScrollReveal(options = { threshold: 0.12 }) {
+export function useScrollReveal(options = {}) {
   const ref = useRef(null);
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        el.classList.add("visible");
-        observer.unobserve(el);
-      }
-    }, options);
+    const { threshold = 0.12, rootMargin = "0px 0px -40px 0px" } =
+      optionsRef.current;
+
+    let revealed = false;
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      revealElement(el, observer);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) reveal();
+      },
+      { threshold, rootMargin },
+    );
 
     observer.observe(el);
+
+    const checkInitial = () => {
+      if (isInViewport(el, threshold)) reveal();
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(checkInitial));
+
     return () => observer.disconnect();
   }, []);
 
@@ -27,42 +56,82 @@ export function useScrollReveal(options = { threshold: 0.12 }) {
 }
 
 /**
- * useStaggerReveal – staggered reveal for a list of cards.
- * @param {number} count – number of items
- * @param {number} delay – ms between each item
- * @returns ref to attach to the container
+ * useStaggerReveal – staggered reveal for child items inside a container.
  */
-export function useStaggerReveal(count, delay = 110) {
+export function useStaggerReveal(
+  count,
+  {
+    selector = ".reveal-stagger-item",
+    delay = 110,
+    threshold = 0.08,
+    rootMargin = "0px 0px -40px 0px",
+  } = {},
+) {
   const containerRef = useRef(null);
+  const optionsRef = useRef({ selector, delay, threshold, rootMargin });
+  optionsRef.current = { selector, delay, threshold, rootMargin };
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const cards = container.querySelectorAll(".service-card");
+    const {
+      selector: itemSelector = ".reveal-stagger-item",
+      delay: staggerDelay = 110,
+      threshold: revealThreshold = 0.08,
+      rootMargin: revealRootMargin = "0px 0px -40px 0px",
+    } = optionsRef.current;
+
+    const items = container.querySelectorAll(itemSelector);
+    if (!items.length) return;
+
+    const timers = [];
+    let revealed = false;
+
+    const runStagger = () => {
+      if (revealed) return;
+      revealed = true;
+      items.forEach((item, i) => {
+        const timer = setTimeout(
+          () => item.classList.add("visible"),
+          i * staggerDelay,
+        );
+        timers.push(timer);
+      });
+    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          cards.forEach((card, i) => {
-            setTimeout(() => card.classList.add("visible"), i * delay);
-          });
+          runStagger();
           observer.unobserve(container);
         }
       },
-      { threshold: 0.08 },
+      { threshold: revealThreshold, rootMargin: revealRootMargin },
     );
 
     observer.observe(container);
-    return () => observer.disconnect();
-  }, [count, delay]);
+
+    const checkInitial = () => {
+      if (isInViewport(container, revealThreshold)) {
+        runStagger();
+        observer.unobserve(container);
+      }
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(checkInitial));
+
+    return () => {
+      observer.disconnect();
+      timers.forEach(clearTimeout);
+    };
+  }, [count]);
 
   return containerRef;
 }
 
 /**
  * useCounter – animates a number from 0 to target when visible.
- * Supports prefix (+) and suffix (%, /7).
  */
 export function useCounter() {
   const ref = useRef(null);
@@ -103,6 +172,16 @@ export function useCounter() {
     );
 
     observer.observe(el);
+
+    const checkInitial = () => {
+      if (isInViewport(el, 0.3)) {
+        animate();
+        observer.unobserve(el);
+      }
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(checkInitial));
+
     return () => observer.disconnect();
   }, []);
 

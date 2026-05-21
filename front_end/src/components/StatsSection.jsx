@@ -1,4 +1,4 @@
-import { useCounter } from "../hooks/useAnimations";
+import { useCounter, useStaggerReveal } from "../hooks/useAnimations";
 
 const stats = [
   {
@@ -30,7 +30,7 @@ const stats = [
 function StatBox({ icon, value, label, aria }) {
   const ref = useCounter();
   return (
-    <div className="stat-box">
+    <div className="stat-box reveal-stagger-item">
       <i className={`bi ${icon} stat-box__icon`} aria-hidden="true"></i>
       <p
         ref={ref}
@@ -46,13 +46,15 @@ function StatBox({ icon, value, label, aria }) {
 }
 
 export default function StatsSection() {
+  const rowRef = useStaggerReveal(stats.length, { delay: 120 });
+
   return (
     <section className="section-stats" aria-labelledby="stats-title">
       <div className="container">
         <h2 className="visually-hidden" id="stats-title">
           Nos chiffres clés
         </h2>
-        <div className="row g-4 text-center">
+        <div className="row g-4 text-center" ref={rowRef}>
           {stats.map((stat) => (
             <div className="col-6 col-lg-3" key={stat.label}>
               <StatBox {...stat} />

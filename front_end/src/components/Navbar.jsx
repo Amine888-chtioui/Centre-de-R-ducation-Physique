@@ -4,7 +4,6 @@ const navLinks = [
   { href: "#accueil", label: "Accueil" },
   { href: "#services", label: "Services" },
   { href: "#apropos", label: "À propos" },
-  { href: "#equipe", label: "Équipe" },
   { href: "#localisation", label: "Localisation" },
   { href: "#contact", label: "Contact" },
 ];
@@ -114,17 +113,41 @@ export default function Navbar() {
                 <i className="bi bi-telephone-fill" aria-hidden="true"></i>
                 <span>+212 600 000 000</span>
               </a>
+
               <a
                 href="#rendez-vous"
-                className="btn-rdv-nav"
+                className="btn-rdv-nav d-lg-none"
                 onClick={handleNavClick}
               >
-                <i
-                  className="bi bi-calendar2-check-fill"
-                  aria-hidden="true"
-                ></i>
+                <i className="bi bi-calendar2-check-fill" aria-hidden="true"></i>
                 Prendre rendez-vous
               </a>
+
+              {/* Auth buttons */}
+              <div
+                className="navbar-auth"
+                role="group"
+                aria-label="Authentification"
+              >
+                <a
+                  href="#connexion"
+                  className="btn-login"
+                  onClick={handleNavClick}
+                  aria-label="Se connecter"
+                >
+                  <i className="bi bi-person-fill" aria-hidden="true"></i>
+                  Se connecter
+                </a>
+                <a
+                  href="#inscription"
+                  className="btn-signup"
+                  onClick={handleNavClick}
+                  aria-label="S'inscrire"
+                >
+                  <i className="bi bi-person-plus-fill" aria-hidden="true"></i>
+                  S'inscrire
+                </a>
+              </div>
             </div>
           </div>
         </div>

@@ -8,7 +8,8 @@ export default function CTASection() {
           Disponible maintenant
         </p>
         <h2 className="cta-title" id="cta-title">
-          Commencez votre rééducation<br />dès aujourd'hui
+          Commencez votre rééducation
+          <br className="cta-title-break" /> dès aujourd&apos;hui
         </h2>
         <p className="cta-desc mx-auto">
           Prenez rendez-vous avec nos spécialistes et bénéficiez d'une première

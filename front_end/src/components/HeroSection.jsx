@@ -41,7 +41,17 @@ export default function HeroSection() {
             </h1>
 
             <p className="hero-subtitle">
-              Rééducation · Kinésithérapie · Récupération fonctionnelle
+              <span>Rééducation</span>
+              <span className="hero-subtitle-dot" aria-hidden="true">
+                {" "}
+                ·{" "}
+              </span>
+              <span>Kinésithérapie</span>
+              <span className="hero-subtitle-dot" aria-hidden="true">
+                {" "}
+                ·{" "}
+              </span>
+              <span>Récupération fonctionnelle</span>
             </p>
 
             <p className="hero-desc">
@@ -79,19 +89,6 @@ export default function HeroSection() {
               <HeroStat value="+10" label="Ans d'expérience" delay={750} />
               <div className="stat-sep" aria-hidden="true"></div>
               <HeroStat value="95%" label="Taux de satisfaction" delay={900} />
-            </div>
-
-            {/* Slide counter */}
-            <div className="hero-counter" aria-label="Diapositive 1 sur 5">
-              <span className="counter-num">01</span>
-              <span className="counter-total">/ 05</span>
-              <div className="counter-dots" aria-hidden="true">
-                <span className="dot dot--active"></span>
-                <span className="dot"></span>
-                <span className="dot"></span>
-                <span className="dot"></span>
-                <span className="dot"></span>
-              </div>
             </div>
           </div>
 

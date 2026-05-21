@@ -1,3 +1,10 @@
+const MAPS_LINK =
+  "https://maps.google.com/?q=123+Avenue+Mohammed+V+Casablanca+Maroc";
+
+/* Vue satellite, sans bandeau Google en haut (recadré en CSS) */
+const MAP_EMBED_SRC =
+  "https://maps.google.com/maps?q=33.5731,-7.5898&hl=fr&z=12&ie=UTF8&iwloc=near&output=embed&t=k";
+
 const infoItems = [
   {
     iconClass: "bi-hospital-fill",
@@ -53,8 +60,18 @@ export default function LocalisationSection() {
           {/* Google Maps */}
           <div className="col-lg-8">
             <div className="loc-map-wrap">
+              <div className="loc-map-frame">
+                <iframe
+                  src={MAP_EMBED_SRC}
+                  className="loc-map-iframe"
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Localisation du Centre de Rééducation Physique – Casablanca"
+                ></iframe>
+              </div>
               <a
-                href="https://maps.google.com/?q=123+Avenue+Mohammed+V+Casablanca+Maroc"
+                href={MAPS_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="loc-map-open"
@@ -63,16 +80,6 @@ export default function LocalisationSection() {
                 <i className="bi bi-box-arrow-up-right" aria-hidden="true"></i>
                 Ouvrir dans Maps
               </a>
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3323.847!2d-7.5898!3d33.5731!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xda7d282b6ebe8d5%3A0x7ac946f96af73c49!2sCasablanca%2C%20Morocco!5e0!3m2!1sfr!2sma!4v1700000000000!5m2!1sfr!2sma"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Localisation du Centre de Rééducation Physique – Casablanca"
-              ></iframe>
             </div>
           </div>
 
@@ -108,7 +115,7 @@ export default function LocalisationSection() {
               </ul>
 
               <a
-                href="https://maps.google.com/?q=123+Avenue+Mohammed+V+Casablanca+Maroc"
+                href={MAPS_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="loc-btn-maps"

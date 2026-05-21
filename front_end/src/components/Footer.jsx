@@ -90,7 +90,7 @@ export default function Footer() {
             <address className="footer-address">
               <p className="footer-contact-item">
                 <i className="bi bi-geo-alt-fill" aria-hidden="true"></i>
-                <span>123 Avenue Mohammed V, Casablanca, Maroc</span>
+                <span>Bouznika, Maroc</span>
               </p>
               <p className="footer-contact-item">
                 <i className="bi bi-telephone-fill" aria-hidden="true"></i>

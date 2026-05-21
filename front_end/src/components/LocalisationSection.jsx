@@ -1,9 +1,11 @@
-const MAPS_LINK =
-  "https://maps.google.com/?q=123+Avenue+Mohammed+V+Casablanca+Maroc";
+const LOCATION_QUERY = "Bouznika,+Maroc";
+const LOCATION_LABEL = "Bouznika, Maroc";
+const MAP_CENTER = "33.7894,-7.1597";
 
-/* Vue satellite, sans bandeau Google en haut (recadré en CSS) */
-const MAP_EMBED_SRC =
-  "https://maps.google.com/maps?q=33.5731,-7.5898&hl=fr&z=12&ie=UTF8&iwloc=near&output=embed&t=k";
+const MAPS_LINK = `https://maps.google.com/?q=${LOCATION_QUERY}`;
+
+/* Vue satellite centrée sur Bouznika */
+const MAP_EMBED_SRC = `https://maps.google.com/maps?q=${MAP_CENTER}&hl=fr&z=14&ie=UTF8&iwloc=near&output=embed&t=k`;
 
 const infoItems = [
   {
@@ -16,7 +18,7 @@ const infoItems = [
     iconClass: "bi-geo-alt-fill",
     colorClass: "loc-item-icon--gray",
     label: "Adresse",
-    value: "123 Avenue Mohammed V, Casablanca, Maroc",
+    value: LOCATION_LABEL,
   },
   {
     iconClass: "bi-clock-fill",
@@ -52,7 +54,7 @@ export default function LocalisationSection() {
             Nous <span className="text-blue">trouver</span>
           </h2>
           <p className="section-subtitle mx-auto">
-            123 Avenue Mohammed V — Casablanca, Maroc
+            {LOCATION_LABEL}
           </p>
         </header>
 
@@ -67,7 +69,7 @@ export default function LocalisationSection() {
                   allowFullScreen=""
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="Localisation du Centre de Rééducation Physique – Casablanca"
+                  title="Localisation du Centre de Rééducation Physique – Bouznika"
                 ></iframe>
               </div>
               <a
@@ -93,7 +95,7 @@ export default function LocalisationSection() {
                 <h3 className="loc-info-name">
                   Centre de Rééducation
                   <br />
-                  Physique – Casablanca
+                  Physique – Bouznika
                 </h3>
               </div>
 

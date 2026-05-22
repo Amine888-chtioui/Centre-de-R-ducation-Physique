@@ -1,3 +1,7 @@
+import { AuthProvider } from "./context/AuthContext";
+import "./components/auth/auth.css"; // styles des formulaires auth
+
+// Tes composants existants
 import Navbar from "./components/Navbar";
 import HeroSection from "./components/HeroSection";
 import ServicesSection from "./components/ServicesSection";
@@ -9,7 +13,12 @@ import Footer from "./components/Footer";
 
 export default function App() {
   return (
-    <>
+    /*
+     * AuthProvider doit entourer TOUT le reste de l'application.
+     * Ainsi, Navbar, les pages, etc. peuvent accéder à useAuth().
+     * Si tu oublies AuthProvider, useAuth() lancera une erreur.
+     */
+    <AuthProvider>
       <a className="skip-link" href="#main-content">
         Aller au contenu principal
       </a>
@@ -26,6 +35,6 @@ export default function App() {
       </main>
 
       <Footer />
-    </>
+    </AuthProvider>
   );
 }

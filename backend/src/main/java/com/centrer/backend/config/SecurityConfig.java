@@ -54,12 +54,10 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
             .authorizeHttpRequests(auth -> auth
-                // Routes publiques : tout le monde peut y accéder sans token
-                .requestMatchers("/api/auth/**").permitAll()
-
-                // Routes protégées : nécessitent un token JWT valide
-                // .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                // Pour l'instant on laisse tout le reste ouvert sauf ce qui est explicitement protégé
+                .requestMatchers("/api/auth/**", "/api/settings/public").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/appointments/**").authenticated()
+                .requestMatchers("/api/notifications/**").authenticated()
                 .anyRequest().permitAll()
             )
 

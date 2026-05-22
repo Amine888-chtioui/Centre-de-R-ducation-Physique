@@ -25,6 +25,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final NotificationService notificationService;
 
     /**
      * Inscription d'un nouvel utilisateur.
@@ -53,12 +54,12 @@ public class AuthService {
 
         // save() = INSERT INTO users (...) VALUES (...)
         userRepository.save(user);
+        notificationService.onNewPatientRegistered(user);
 
-        // Étape 4 : générer le JWT
         var token = jwtService.generateToken(user);
 
-        // Construire et retourner la réponse (sans le password !)
         return AuthResponse.builder()
+                .id(user.getId())
                 .token(token)
                 .email(user.getEmail())
                 .nom(user.getNom())
@@ -97,6 +98,7 @@ public class AuthService {
 
         // Étape 3 : retourner la réponse
         return AuthResponse.builder()
+                .id(user.getId())
                 .token(token)
                 .email(user.getEmail())
                 .nom(user.getNom())

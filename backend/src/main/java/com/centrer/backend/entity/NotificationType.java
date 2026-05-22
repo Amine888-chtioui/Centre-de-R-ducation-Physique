@@ -1,0 +1,9 @@
+package com.centrer.backend.entity;
+
+public enum NotificationType {
+    APPOINTMENT_REQUEST,
+    APPOINTMENT_CONFIRMED,
+    APPOINTMENT_REFUSED,
+    APPOINTMENT_CANCELLED,
+    NEW_PATIENT
+}

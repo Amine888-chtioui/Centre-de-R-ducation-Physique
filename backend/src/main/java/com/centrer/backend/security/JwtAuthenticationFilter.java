@@ -42,17 +42,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain  // la suite de la chaîne de filtres
     ) throws ServletException, IOException {
 
-        // 1. Lire le header Authorization
-        final String authHeader = request.getHeader("Authorization");
+        final String jwt = resolveToken(request);
 
-        // Si pas de header ou ne commence pas par "Bearer " → passer au filtre suivant
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        // 2. Extraire le token (supprimer "Bearer " du début)
-        final String jwt = authHeader.substring(7); // "Bearer " = 7 caractères
 
         // 3. Extraire l'email depuis le token
         final String userEmail = jwtService.extractUsername(jwt);
@@ -85,7 +80,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        // 8. Passer au filtre suivant (continuer la requête)
         filterChain.doFilter(request, response);
+    }
+
+    /** Header Authorization ou paramètre access_token (flux SSE EventSource). */
+    private String resolveToken(HttpServletRequest request) {
+        final String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        String queryToken = request.getParameter("access_token");
+        if (queryToken != null && !queryToken.isBlank()) {
+            return queryToken.trim();
+        }
+        return null;
     }
 }

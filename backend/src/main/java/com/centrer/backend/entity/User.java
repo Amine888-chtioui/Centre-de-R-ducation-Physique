@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,6 +53,16 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     // EnumType.STRING = stocke "ROLE_USER" plutôt qu'un chiffre 0/1
     private Role role;
+
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 
     // ─── Méthodes de UserDetails (requises par Spring Security) ───────────────
 

@@ -1,8 +1,11 @@
 package com.centrer.backend.repository;
 
+import com.centrer.backend.entity.Role;
 import com.centrer.backend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -28,4 +31,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * Retourne true si l'email existe, false sinon.
      */
     boolean existsByEmail(String email);
+
+    List<User> findByRoleOrderByCreatedAtDesc(Role role);
+
+    List<User> findByRole(Role role);
+
+    long countByRole(Role role);
+
+    long countByRoleAndCreatedAtAfter(Role role, LocalDateTime after);
 }

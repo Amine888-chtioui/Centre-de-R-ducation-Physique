@@ -21,7 +21,10 @@ const socials = [
   { href: "https://twitter.com", icon: "bi-twitter-x", label: "Twitter / X" },
 ];
 
+import { usePublicSettings } from "../hooks/usePublicSettings";
+
 export default function Footer() {
+  const { phone, telHref, hours } = usePublicSettings();
   return (
     <footer className="site-footer" id="contact" role="contentinfo">
       <div className="container">
@@ -94,7 +97,7 @@ export default function Footer() {
               </p>
               <p className="footer-contact-item">
                 <i className="bi bi-telephone-fill" aria-hidden="true"></i>
-                <a href="tel:+212600000000">+212 600 000 000</a>
+                <a href={telHref}>{phone}</a>
               </p>
               <p className="footer-contact-item">
                 <i className="bi bi-envelope-fill" aria-hidden="true"></i>
@@ -110,11 +113,7 @@ export default function Footer() {
               </p>
               <p className="footer-contact-item">
                 <i className="bi bi-calendar3" aria-hidden="true"></i>
-                <span>
-                  Lun – Ven : 08h00 – 18h00
-                  <br />
-                  Samedi : 08h00 – 13h00
-                </span>
+                <span>{hours}</span>
               </p>
             </div>
           </div>

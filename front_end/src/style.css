@@ -1972,8 +1972,30 @@ h6 {
     flex-wrap: wrap;
   }
   .btn-login,
-  .btn-signup {
+  .btn-signup,
+  .navbar-dash-link {
     flex: 1 1 calc(50% - 4px);
     justify-content: center;
   }
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.user-greeting {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  white-space: nowrap;
+}
+
+.navbar-dash-link {
+  text-decoration: none;
 }

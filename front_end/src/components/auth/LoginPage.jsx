@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { login } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import { getDashboardPath } from "../../utils/auth";
 
 /**
  * Composant de la page de connexion.
@@ -13,6 +15,7 @@ import { useAuth } from "../../context/AuthContext";
  */
 export default function LoginPage({ onSwitchToRegister, onClose }) {
   const { saveAuth } = useAuth();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -68,9 +71,8 @@ export default function LoginPage({ onSwitchToRegister, onClose }) {
 
       // Succès : sauvegarder le token et les infos utilisateur
       saveAuth(authData);
-
-      // Fermer la modal si on est dans une modal
       if (onClose) onClose();
+      navigate(getDashboardPath(authData));
     } catch (err) {
       const data = err.response?.data;
       const message =

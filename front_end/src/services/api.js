@@ -46,7 +46,9 @@ api.interceptors.response.use(
       // Token expiré : nettoyer le localStorage et rediriger vers login
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/"; // ou "/login" si tu as du routing
+      if (!window.location.pathname.startsWith("/dashboard") && !window.location.pathname.startsWith("/admin")) {
+        window.location.href = "/";
+      }
     }
     return Promise.reject(error);
   },

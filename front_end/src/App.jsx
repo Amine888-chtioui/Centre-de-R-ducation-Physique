@@ -1,40 +1,44 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import "./components/auth/auth.css"; // styles des formulaires auth
+import { NotificationProvider } from "./context/NotificationContext";
+import { ToastProvider } from "./context/ToastContext";
+import "./components/auth/auth.css";
+import "./components/dashboard/dashboard.css";
 
-// Tes composants existants
-import Navbar from "./components/Navbar";
-import HeroSection from "./components/HeroSection";
-import ServicesSection from "./components/ServicesSection";
-import AboutSection from "./components/AboutSection";
-import StatsSection from "./components/StatsSection";
-import CTASection from "./components/CTASection";
-import LocalisationSection from "./components/LocalisationSection";
-import Footer from "./components/Footer";
+import HomePage from "./pages/HomePage";
+import UserDashboard from "./pages/dashboard/UserDashboard";
+import AdminDashboard from "./pages/dashboard/AdminDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
-    /*
-     * AuthProvider doit entourer TOUT le reste de l'application.
-     * Ainsi, Navbar, les pages, etc. peuvent accéder à useAuth().
-     * Si tu oublies AuthProvider, useAuth() lancera une erreur.
-     */
     <AuthProvider>
-      <a className="skip-link" href="#main-content">
-        Aller au contenu principal
-      </a>
-
-      <Navbar />
-
-      <main id="main-content" role="main">
-        <HeroSection />
-        <ServicesSection />
-        <AboutSection />
-        <StatsSection />
-        <CTASection />
-        <LocalisationSection />
-      </main>
-
-      <Footer />
+      <BrowserRouter>
+        <ToastProvider>
+        <NotificationProvider>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        </NotificationProvider>
+        </ToastProvider>
+      </BrowserRouter>
     </AuthProvider>
   );
 }

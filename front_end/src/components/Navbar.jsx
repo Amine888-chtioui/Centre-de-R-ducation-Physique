@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { usePublicSettings } from "../hooks/usePublicSettings";
+import { getDashboardPath } from "../utils/auth";
 import AuthModal from "./auth/AuthModal";
 
 const navLinks = [
@@ -11,18 +14,25 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  // État de la modal : ouverte/fermée et quelle vue (login ou register)
   const [modalState, setModalState] = useState({
     isOpen: false,
     view: "login",
   });
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { phone, telHref } = usePublicSettings();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
 
   const openLogin = () => setModalState({ isOpen: true, view: "login" });
   const openRegister = () => setModalState({ isOpen: true, view: "register" });
   const closeModal = () => setModalState((s) => ({ ...s, isOpen: false }));
 
-  // Fermeture menu mobile sur clic lien
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
   const handleNavClick = () => {
     if (window.innerWidth >= 992) return;
     const navCollapse = document.getElementById("navMenu");
@@ -31,8 +41,9 @@ export default function Navbar() {
     }
   };
 
-  // Active link on scroll
   useEffect(() => {
+    if (!isHome) return;
+
     const sections = document.querySelectorAll("section[id], footer[id]");
     const links = document.querySelectorAll(".navbar-nav .nav-link");
     const observer = new IntersectionObserver(
@@ -54,7 +65,7 @@ export default function Navbar() {
     );
     sections.forEach((sec) => observer.observe(sec));
     return () => observer.disconnect();
-  }, []);
+  }, [isHome]);
 
   return (
     <>
@@ -65,9 +76,9 @@ export default function Navbar() {
           aria-label="Menu principal"
         >
           <div className="container">
-            <a
+            <Link
               className="navbar-brand"
-              href="/"
+              to="/"
               aria-label="Retour à l'accueil"
             >
               <span className="brand-logo" aria-hidden="true">
@@ -78,7 +89,7 @@ export default function Navbar() {
                 <br />
                 <strong>Rééducation Physique</strong>
               </span>
-            </a>
+            </Link>
 
             <button
               className="navbar-toggler"
@@ -93,29 +104,27 @@ export default function Navbar() {
             </button>
 
             <div className="collapse navbar-collapse" id="navMenu">
-              <ul className="navbar-nav mx-auto" role="list">
-                {navLinks.map(({ href, label }, i) => (
-                  <li className="nav-item" role="listitem" key={href}>
-                    <a
-                      className={`nav-link${i === 0 ? " active" : ""}`}
-                      href={href}
-                      aria-current={i === 0 ? "page" : undefined}
-                      onClick={handleNavClick}
-                    >
-                      {label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              {isHome && (
+                <ul className="navbar-nav mx-auto" role="list">
+                  {navLinks.map(({ href, label }, i) => (
+                    <li className="nav-item" role="listitem" key={href}>
+                      <a
+                        className={`nav-link${i === 0 ? " active" : ""}`}
+                        href={href}
+                        aria-current={i === 0 ? "page" : undefined}
+                        onClick={handleNavClick}
+                      >
+                        {label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               <div className="navbar-actions">
-                <a
-                  href="tel:+212600000000"
-                  className="navbar-phone"
-                  aria-label="Appeler"
-                >
+                <a href={telHref} className="navbar-phone" aria-label="Appeler">
                   <i className="bi bi-telephone-fill" aria-hidden="true"></i>
-                  <span>+212 600 000 000</span>
+                  <span>{phone}</span>
                 </a>
 
                 <div
@@ -124,7 +133,6 @@ export default function Navbar() {
                   aria-label="Authentification"
                 >
                   {isAuthenticated ? (
-                    /* ── Utilisateur connecté ── */
                     <div className="user-menu">
                       <span className="user-greeting">
                         <i
@@ -133,9 +141,20 @@ export default function Navbar() {
                         ></i>
                         {user?.prenom}
                       </span>
+                      <Link
+                        to={getDashboardPath(user)}
+                        className="btn-signup navbar-dash-link"
+                        onClick={handleNavClick}
+                      >
+                        <i
+                          className={`bi ${isAdmin ? "bi-shield-check" : "bi-grid-fill"}`}
+                          aria-hidden="true"
+                        ></i>
+                        {isAdmin ? "Admin" : "Mon espace"}
+                      </Link>
                       <button
                         className="btn-login"
-                        onClick={logout}
+                        onClick={handleLogout}
                         aria-label="Se déconnecter"
                       >
                         <i
@@ -146,7 +165,6 @@ export default function Navbar() {
                       </button>
                     </div>
                   ) : (
-                    /* ── Non connecté ── */
                     <>
                       <button
                         className="btn-login"
@@ -176,7 +194,6 @@ export default function Navbar() {
         </nav>
       </header>
 
-      {/* Modal d'authentification */}
       <AuthModal
         isOpen={modalState.isOpen}
         onClose={closeModal}

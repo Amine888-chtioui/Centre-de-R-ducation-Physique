@@ -1,7 +1,9 @@
 import { useScrollReveal } from "../hooks/useAnimations";
+import { usePublicSettings } from "../hooks/usePublicSettings";
 
 export default function CTASection() {
   const contentRef = useScrollReveal({ threshold: 0.15 });
+  const { phone, telHref } = usePublicSettings();
 
   return (
     <section className="section-cta" id="rendez-vous" aria-labelledby="cta-title">
@@ -28,16 +30,16 @@ export default function CTASection() {
             Réserver un rendez-vous
           </a>
           <a
-            href="tel:+212600000000"
+            href={telHref}
             className="cta-phone"
-            aria-label="Appelez-nous au +212 600 000 000"
+            aria-label={`Appelez-nous au ${phone}`}
           >
             <span className="cta-phone__icon" aria-hidden="true">
               <i className="bi bi-telephone-fill"></i>
             </span>
             <span>
               <span className="cta-phone__label">Appelez-nous directement</span>
-              <span className="cta-phone__num">+212 600 000 000</span>
+              <span className="cta-phone__num">{phone}</span>
             </span>
           </a>
         </div>

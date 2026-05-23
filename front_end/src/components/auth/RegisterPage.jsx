@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { register } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import { getDashboardPath } from "../../utils/auth";
 
 export default function RegisterPage({ onSwitchToLogin, onClose }) {
   const { saveAuth } = useAuth();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     nom: "",
@@ -61,6 +64,7 @@ export default function RegisterPage({ onSwitchToLogin, onClose }) {
       const authData = await register(dataToSend);
       saveAuth(authData);
       if (onClose) onClose();
+      navigate(getDashboardPath(authData));
     } catch (err) {
       const data = err.response?.data;
       const message =

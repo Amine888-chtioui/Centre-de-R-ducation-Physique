@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
+import { isAdmin as checkIsAdmin } from "../utils/auth";
 
 /**
  * createContext() crée un "espace partagé" accessible depuis n'importe quel
@@ -57,7 +58,8 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     token,
-    isAuthenticated: !!token, // true si connecté, false sinon
+    isAuthenticated: !!token,
+    isAdmin: checkIsAdmin(user),
     saveAuth,
     logout,
   };

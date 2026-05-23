@@ -85,11 +85,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // En développement, autoriser le port de Vite
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+        // Dev : Vite (localhost, IP LAN, émulateur mobile)
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "http://192.168.*:*",
+                "http://10.*:*"
+        ));
 
-        // Méthodes HTTP autorisées
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         // Headers autorisés (Authorization pour notre JWT)
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));

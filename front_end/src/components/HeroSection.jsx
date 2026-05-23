@@ -17,7 +17,7 @@ function HeroStat({ value, label, delay }) {
   );
 }
 
-export default function HeroSection() {
+export default function HeroSection({ onRdvClick }) {
   return (
     <section className="section-hero" id="accueil" aria-labelledby="hero-title">
       <div className="hero-bg-ring hero-bg-ring--1" aria-hidden="true"></div>
@@ -65,13 +65,17 @@ export default function HeroSection() {
               role="group"
               aria-label="Actions principales"
             >
-              <a href="#rendez-vous" className="btn-primary">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={onRdvClick}
+              >
                 <i
                   className="bi bi-calendar2-check-fill"
                   aria-hidden="true"
                 ></i>
                 Prendre rendez-vous
-              </a>
+              </button>
               <a href="#services" className="btn-outline">
                 <i className="bi bi-grid-fill" aria-hidden="true"></i>
                 Voir les services

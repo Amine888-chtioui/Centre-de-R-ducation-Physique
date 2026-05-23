@@ -8,7 +8,7 @@ const features = [
   "Environnement chaleureux et professionnel pour votre bien-être",
 ];
 
-export default function AboutSection() {
+export default function AboutSection({ onRdvClick }) {
   const imgRef = useScrollReveal({ threshold: 0.12 });
   const textRef = useScrollReveal({ threshold: 0.1 });
 
@@ -22,10 +22,7 @@ export default function AboutSection() {
         <div className="row align-items-center g-5">
           {/* Image */}
           <div className="col-lg-5">
-            <div
-              className="about-img-wrap reveal reveal--left"
-              ref={imgRef}
-            >
+            <div className="about-img-wrap reveal reveal--left" ref={imgRef}>
               <img
                 src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&h=500&fit=crop"
                 alt="Salle de rééducation du centre physique"
@@ -66,13 +63,17 @@ export default function AboutSection() {
             </ul>
 
             <div className="about-actions">
-              <a href="#rendez-vous" className="btn-primary">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={onRdvClick}
+              >
                 <i
                   className="bi bi-calendar2-check-fill"
                   aria-hidden="true"
                 ></i>
                 Prendre rendez-vous
-              </a>
+              </button>
               <a href="#equipe" className="btn-outline">
                 <i className="bi bi-people-fill" aria-hidden="true"></i>
                 Notre équipe

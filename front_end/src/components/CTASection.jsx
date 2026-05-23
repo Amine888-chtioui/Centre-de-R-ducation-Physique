@@ -1,12 +1,16 @@
 import { useScrollReveal } from "../hooks/useAnimations";
 import { usePublicSettings } from "../hooks/usePublicSettings";
 
-export default function CTASection() {
+export default function CTASection({ onRdvClick }) {
   const contentRef = useScrollReveal({ threshold: 0.15 });
   const { phone, telHref } = usePublicSettings();
 
   return (
-    <section className="section-cta" id="rendez-vous" aria-labelledby="cta-title">
+    <section
+      className="section-cta"
+      id="rendez-vous"
+      aria-labelledby="cta-title"
+    >
       <div className="cta-bg-circle" aria-hidden="true"></div>
       <div
         className="container text-center position-relative reveal reveal--up"
@@ -25,10 +29,10 @@ export default function CTASection() {
           première évaluation personnalisée.
         </p>
         <div className="cta-actions">
-          <a href="#contact" className="btn-cta-white">
+          <button type="button" className="btn-cta-white" onClick={onRdvClick}>
             <i className="bi bi-calendar2-check-fill" aria-hidden="true"></i>
             Réserver un rendez-vous
-          </a>
+          </button>
           <a
             href={telHref}
             className="cta-phone"

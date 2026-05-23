@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getApiBaseUrl } from "../config/api";
 
 /**
  * On crée une instance axios personnalisée.
@@ -6,7 +7,8 @@ import axios from "axios";
  * ce qui évite de répéter l'URL de base partout.
  */
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: getApiBaseUrl(),
+  timeout: 20000,
   headers: {
     "Content-Type": "application/json",
   },

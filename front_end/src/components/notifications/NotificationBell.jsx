@@ -29,14 +29,158 @@ function iconTone(type) {
 }
 
 const MOBILE_MQ = "(max-width: 767px)";
+const SWIPE_THRESHOLD = 80;
+
+function SwipeableNotifItem({ item, onRead, onDismiss }) {
+  const [swipeX, setSwipeX] = useState(0);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [swipeDir, setSwipeDir] = useState(null);
+  const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
+  const itemRef = useRef(null);
+  const isScrolling = useRef(false);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isScrolling.current = false;
+  };
+
+  const handleTouchMove = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.touches[0].clientX - touchStartX.current;
+    const dy = e.touches[0].clientY - touchStartY.current;
+
+    if (
+      !isScrolling.current &&
+      Math.abs(dy) > Math.abs(dx) &&
+      Math.abs(dy) > 8
+    ) {
+      isScrolling.current = true;
+    }
+
+    if (isScrolling.current) return;
+
+    if (Math.abs(dx) > 6) {
+      e.preventDefault();
+      setSwipeX(dx);
+      setSwipeDir(dx < 0 ? "left" : "right");
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isScrolling.current) {
+      setSwipeX(0);
+      setSwipeDir(null);
+      touchStartX.current = null;
+      return;
+    }
+
+    if (Math.abs(swipeX) >= SWIPE_THRESHOLD) {
+      triggerDismiss(swipeX < 0 ? "left" : "right");
+    } else {
+      setSwipeX(0);
+      setSwipeDir(null);
+    }
+    touchStartX.current = null;
+  };
+
+  const triggerDismiss = (dir) => {
+    setSwipeDir(dir);
+    setSwipeX(dir === "left" ? -400 : 400);
+    setIsDismissed(true);
+
+    const wrapper = itemRef.current?.closest(".notif-item-wrapper");
+    if (wrapper) {
+      wrapper.classList.add("notif-item-wrapper--collapsing");
+    }
+
+    setTimeout(() => {
+      if (dir === "right" && !item.read) {
+        onRead(item.id);
+      } else {
+        onDismiss(item.id);
+      }
+    }, 440);
+  };
+
+  const bgVisible = Math.abs(swipeX) > 20;
+  const isDraggingLeft = swipeX < 0;
+  const isDraggingRight = swipeX > 0;
+
+  return (
+    <div className="notif-item-wrapper" ref={itemRef}>
+      <div
+        className={`notif-item-swipe-bg notif-item-swipe-bg--left ${isDraggingLeft && bgVisible ? "notif-item-swipe-bg--visible" : ""}`}
+        aria-hidden="true"
+      >
+        <i className="bi bi-x-circle-fill"></i>
+      </div>
+      <div
+        className={`notif-item-swipe-bg notif-item-swipe-bg--right ${isDraggingRight && bgVisible ? "notif-item-swipe-bg--visible" : ""}`}
+        aria-hidden="true"
+      >
+        <i className="bi bi-check-circle-fill"></i>
+      </div>
+
+      <button
+        type="button"
+        className={`notif-item${item.read ? "" : " notif-item--unread"}${
+          isDismissed
+            ? swipeDir === "left"
+              ? " notif-item--swiped-left"
+              : " notif-item--swiped-right"
+            : ""
+        }`}
+        style={
+          !isDismissed && swipeX !== 0
+            ? { transform: `translateX(${swipeX}px)`, transition: "none" }
+            : undefined
+        }
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClick={() => {
+          if (Math.abs(swipeX) < 5) {
+            onRead(item.id, true);
+          }
+        }}
+        aria-label={`${item.title}${item.read ? "" : " — non lu"}`}
+      >
+        <span
+          className={`notif-item__icon ${iconTone(item.type)}`}
+          aria-hidden="true"
+        >
+          <i className={`bi ${item.icon || "bi-bell-fill"}`} />
+        </span>
+        <span className="notif-item__content">
+          <span className="notif-item__row">
+            <strong className="notif-item__title">{item.title}</strong>
+            <time className="notif-item__time" dateTime={item.createdAt}>
+              {formatTimeAgo(item.createdAt)}
+            </time>
+          </span>
+          <span className="notif-item__message">{item.message}</span>
+        </span>
+        {!item.read && <span className="notif-item__dot" aria-label="Non lu" />}
+      </button>
+    </div>
+  );
+}
+
+const MOBILE_DISMISSED_KEY = "__notif_dismissed__";
 
 export default function NotificationBell({ onNavigate }) {
-  const { items, unreadCount, loading, markRead, markAllRead } = useNotifications();
+  const { items, unreadCount, loading, markRead, markAllRead } =
+    useNotifications();
   const [open, setOpen] = useState(false);
   const [ring, setRing] = useState(false);
+  const [dismissed, setDismissed] = useState(() => new Set());
   const prevUnreadRef = useRef(unreadCount);
   const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia(MOBILE_MQ).matches : false,
+    typeof window !== "undefined"
+      ? window.matchMedia(MOBILE_MQ).matches
+      : false,
   );
   const rootRef = useRef(null);
 
@@ -75,9 +219,7 @@ export default function NotificationBell({ onNavigate }) {
 
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("keydown", onEsc);
-    if (isMobile) {
-      document.body.classList.add("notif-panel-open");
-    }
+    if (isMobile) document.body.classList.add("notif-panel-open");
 
     return () => {
       document.removeEventListener("mousedown", onDocClick);
@@ -89,15 +231,24 @@ export default function NotificationBell({ onNavigate }) {
   const badgeLabel =
     unreadCount > 99 ? "99+" : unreadCount > 0 ? String(unreadCount) : null;
 
-  const handleItemClick = async (item) => {
-    if (!item.read) {
-      await markRead(item.id);
+  const handleItemRead = async (id, navigate) => {
+    const item = items.find((n) => n.id === id);
+    if (item && !item.read) {
+      await markRead(id);
     }
-    setOpen(false);
-    if (item.targetTab && onNavigate) {
-      onNavigate(item.targetTab);
+    if (navigate) {
+      setOpen(false);
+      if (item?.targetTab && onNavigate) {
+        onNavigate(item.targetTab);
+      }
     }
   };
+
+  const handleDismiss = (id) => {
+    setDismissed((prev) => new Set([...prev, id]));
+  };
+
+  const visibleItems = items.filter((n) => !dismissed.has(n.id));
 
   const panel = open ? (
     <>
@@ -128,10 +279,10 @@ export default function NotificationBell({ onNavigate }) {
         </header>
 
         <div className="notif-panel__body">
-          {loading && items.length === 0 && (
+          {loading && visibleItems.length === 0 && (
             <p className="notif-panel__empty">Chargement…</p>
           )}
-          {!loading && items.length === 0 && (
+          {!loading && visibleItems.length === 0 && (
             <div className="notif-panel__empty-state">
               <i className="bi bi-bell-slash" aria-hidden="true" />
               <p>Aucune notification pour le moment</p>
@@ -139,32 +290,13 @@ export default function NotificationBell({ onNavigate }) {
             </div>
           )}
           <ul className="notif-list">
-            {items.map((item) => (
+            {visibleItems.map((item) => (
               <li key={item.id}>
-                <button
-                  type="button"
-                  className={`notif-item${item.read ? "" : " notif-item--unread"}`}
-                  onClick={() => handleItemClick(item)}
-                >
-                  <span
-                    className={`notif-item__icon ${iconTone(item.type)}`}
-                    aria-hidden="true"
-                  >
-                    <i className={`bi ${item.icon || "bi-bell-fill"}`} />
-                  </span>
-                  <span className="notif-item__content">
-                    <span className="notif-item__row">
-                      <strong className="notif-item__title">{item.title}</strong>
-                      <time className="notif-item__time" dateTime={item.createdAt}>
-                        {formatTimeAgo(item.createdAt)}
-                      </time>
-                    </span>
-                    <span className="notif-item__message">{item.message}</span>
-                  </span>
-                  {!item.read && (
-                    <span className="notif-item__dot" aria-label="Non lu" />
-                  )}
-                </button>
+                <SwipeableNotifItem
+                  item={item}
+                  onRead={(id) => handleItemRead(id, false)}
+                  onDismiss={handleDismiss}
+                />
               </li>
             ))}
           </ul>

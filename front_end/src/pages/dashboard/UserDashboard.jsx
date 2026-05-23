@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import AppointmentForm from "../../components/dashboard/AppointmentForm";
 import { useAuth } from "../../context/AuthContext";
@@ -16,11 +16,28 @@ import {
   getStatusLabel,
   getStatusPillClass,
 } from "../../utils/appointmentFormat";
+import { getFetchErrorMessage } from "../../config/api";
+import { withTimeout } from "../../utils/withTimeout";
 
 const NAV = [
-  { id: "home", label: "Accueil", shortLabel: "Accueil", icon: "bi-house-door-fill" },
-  { id: "appointments", label: "Rendez-vous", shortLabel: "RDV", icon: "bi-calendar-check" },
-  { id: "profile", label: "Profil", shortLabel: "Profil", icon: "bi-person-fill" },
+  {
+    id: "home",
+    label: "Accueil",
+    shortLabel: "Accueil",
+    icon: "bi-house-door-fill",
+  },
+  {
+    id: "appointments",
+    label: "Rendez-vous",
+    shortLabel: "RDV",
+    icon: "bi-calendar-check",
+  },
+  {
+    id: "profile",
+    label: "Profil",
+    shortLabel: "Profil",
+    icon: "bi-person-fill",
+  },
 ];
 
 export default function UserDashboard() {
@@ -44,7 +61,9 @@ export default function UserDashboard() {
       title={title}
       simple
     >
-      {tab === "home" && <UserHome onGoAppointments={() => setTab("appointments")} />}
+      {tab === "home" && (
+        <UserHome onGoAppointments={() => setTab("appointments")} />
+      )}
       {tab === "appointments" && <UserAppointments />}
       {tab === "profile" && <UserProfile />}
     </DashboardLayout>
@@ -55,21 +74,27 @@ function UserHome({ onGoAppointments }) {
   const [next, setNext] = useState(null);
   const [loading, setLoading] = useState(true);
   const { phone, telHref } = usePublicSettings();
+  const isMounted = useRef(true);
 
   const loadNext = useCallback(async () => {
+    if (!isMounted.current) return;
     setLoading(true);
     try {
-      const data = await getMyNextAppointment();
-      setNext(data);
+      const data = await withTimeout(getMyNextAppointment());
+      if (isMounted.current) setNext(data);
     } catch {
-      setNext(null);
+      if (isMounted.current) setNext(null);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    isMounted.current = true;
     loadNext();
+    return () => {
+      isMounted.current = false;
+    };
   }, [loadNext]);
 
   return (
@@ -106,7 +131,11 @@ function UserHome({ onGoAppointments }) {
       </section>
 
       <nav className="dash-menu-list" aria-label="Actions principales">
-        <button type="button" className="dash-menu-list__item ui-press" onClick={onGoAppointments}>
+        <button
+          type="button"
+          className="dash-menu-list__item ui-press"
+          onClick={onGoAppointments}
+        >
           <i className="bi bi-calendar-plus" aria-hidden="true" />
           <span>Prendre rendez-vous</span>
           <i className="bi bi-chevron-right" aria-hidden="true" />
@@ -136,23 +165,35 @@ function UserAppointments() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
+  const isMounted = useRef(true);
 
   const loadAppointments = useCallback(async () => {
+    if (!isMounted.current) return;
     setLoading(true);
     setError("");
     try {
-      const data = await getMyAppointments();
-      setAppointments(data);
-    } catch {
-      setError("Impossible de charger vos rendez-vous");
+      const data = await withTimeout(getMyAppointments());
+      if (isMounted.current) setAppointments(data);
+    } catch (err) {
+      if (!isMounted.current) return;
+      setError(
+        getFetchErrorMessage(err, {
+          timeout: "La connexion est trop lente. Veuillez réessayer.",
+          fallback: "Impossible de charger vos rendez-vous.",
+        }),
+      );
       setAppointments([]);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    isMounted.current = true;
     loadAppointments();
+    return () => {
+      isMounted.current = false;
+    };
   }, [loadAppointments]);
 
   const handleCancel = async (id) => {
@@ -195,18 +236,54 @@ function UserAppointments() {
 
       {error && (
         <div className="auth-error-banner" role="alert">
+          <i className="bi bi-exclamation-circle-fill" aria-hidden="true" />
           <span>{error}</span>
+          <button
+            type="button"
+            style={{
+              marginLeft: "auto",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "inherit",
+            }}
+            onClick={loadAppointments}
+            aria-label="Réessayer"
+          >
+            <i className="bi bi-arrow-clockwise" />
+          </button>
         </div>
       )}
 
       {loading ? (
-        <p className="dash-intro">Chargement...</p>
-      ) : upcoming.length === 0 ? (
-        <p className="dash-intro">Vous n&apos;avez pas encore de rendez-vous.</p>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}
+        >
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="dash-simple-list__item"
+              style={{ opacity: 0.6 }}
+            >
+              <div style={{ flex: 1 }}>
+                <Skeleton height="14px" width="60%" />
+                <Skeleton height="11px" width="40%" style={{ marginTop: 6 }} />
+              </div>
+              <Skeleton height="24px" width="70px" />
+            </div>
+          ))}
+        </div>
+      ) : upcoming.length === 0 && !error ? (
+        <p className="dash-intro">
+          Vous n&apos;avez pas encore de rendez-vous.
+        </p>
       ) : (
         <ul className="dash-simple-list">
           {upcoming.map((a) => (
-            <li key={a.id} className="dash-simple-list__item dash-simple-list__item--stack">
+            <li
+              key={a.id}
+              className="dash-simple-list__item dash-simple-list__item--stack"
+            >
               <div>
                 <strong>
                   {formatAppointmentDate(a.appointmentDateTime)} —{" "}
@@ -215,7 +292,9 @@ function UserAppointments() {
                 <span>{a.type}</span>
               </div>
               <div className="dash-simple-list__actions">
-                <span className={`dash-pill dash-pill--${getStatusPillClass(a.status)}`}>
+                <span
+                  className={`dash-pill dash-pill--${getStatusPillClass(a.status)}`}
+                >
                   {getStatusLabel(a.status)}
                 </span>
                 {a.status !== "ANNULE" && (

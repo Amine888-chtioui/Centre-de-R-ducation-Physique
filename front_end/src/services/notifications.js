@@ -1,6 +1,7 @@
 import api from "./api";
+import { getNotificationStreamUrl } from "../config/api";
 
-export const API_BASE_URL = "http://localhost:8080/api";
+export { getNotificationStreamUrl };
 
 export const getNotifications = async () => {
   const { data } = await api.get("/notifications");
@@ -20,8 +21,3 @@ export const markNotificationRead = async (id) => {
 export const markAllNotificationsRead = async () => {
   await api.put("/notifications/read-all");
 };
-
-export function getNotificationStreamUrl(token) {
-  const params = new URLSearchParams({ access_token: token });
-  return `${API_BASE_URL}/notifications/stream?${params.toString()}`;
-}

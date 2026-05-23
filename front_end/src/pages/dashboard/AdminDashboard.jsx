@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import {
   getAdminStats,
@@ -25,13 +25,40 @@ import {
   getStatusPillClass,
   patientStatusPill,
 } from "../../utils/appointmentFormat";
+import { getFetchErrorMessage } from "../../config/api";
+import { withTimeout } from "../../utils/withTimeout";
 
 const BASE_NAV = [
-  { id: "overview", label: "Vue d'ensemble", shortLabel: "Accueil", icon: "bi-speedometer2" },
-  { id: "patients", label: "Patients", shortLabel: "Patients", icon: "bi-people-fill" },
-  { id: "appointments", label: "Rendez-vous", shortLabel: "RDV", icon: "bi-calendar3" },
-  { id: "planning", label: "Planning", shortLabel: "Planning", icon: "bi-grid-3x3-gap-fill" },
-  { id: "settings", label: "Paramètres", shortLabel: "Réglages", icon: "bi-gear-fill" },
+  {
+    id: "overview",
+    label: "Vue d'ensemble",
+    shortLabel: "Accueil",
+    icon: "bi-speedometer2",
+  },
+  {
+    id: "patients",
+    label: "Patients",
+    shortLabel: "Patients",
+    icon: "bi-people-fill",
+  },
+  {
+    id: "appointments",
+    label: "Rendez-vous",
+    shortLabel: "RDV",
+    icon: "bi-calendar3",
+  },
+  {
+    id: "planning",
+    label: "Planning",
+    shortLabel: "Planning",
+    icon: "bi-grid-3x3-gap-fill",
+  },
+  {
+    id: "settings",
+    label: "Paramètres",
+    shortLabel: "Réglages",
+    icon: "bi-gear-fill",
+  },
 ];
 
 export default function AdminDashboard() {
@@ -49,7 +76,7 @@ export default function AdminDashboard() {
   );
 
   useEffect(() => {
-    getAdminStats()
+    withTimeout(getAdminStats())
       .then((s) => setPatientCount(s.totalPatients))
       .catch(() => setPatientCount(null));
   }, []);
@@ -58,7 +85,10 @@ export default function AdminDashboard() {
     overview: { title: "Administration", subtitle: "Vue globale du centre" },
     patients: { title: "Patients", subtitle: "Gestion des dossiers" },
     appointments: { title: "Rendez-vous", subtitle: "Tous les rendez-vous" },
-    planning: { title: "Planning", subtitle: "Jours et heures ouverts aux réservations" },
+    planning: {
+      title: "Planning",
+      subtitle: "Jours et heures ouverts aux réservations",
+    },
     settings: { title: "Paramètres", subtitle: "Configuration du centre" },
   };
 
@@ -90,32 +120,49 @@ function AdminOverview() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const isMounted = useRef(true);
 
   const load = useCallback(async (silent = false) => {
+    if (!isMounted.current) return;
     if (silent) setRefreshing(true);
     else setLoading(true);
     setError("");
     try {
       const [s, t, a, c] = await Promise.all([
-        getAdminStats(),
-        getTodayAppointments(),
-        getRecentActivity(),
-        getWeeklyChart(),
+        withTimeout(getAdminStats()),
+        withTimeout(getTodayAppointments()),
+        withTimeout(getRecentActivity()),
+        withTimeout(getWeeklyChart()),
       ]);
+      if (!isMounted.current) return;
       setStats(s);
       setToday(t);
       setActivity(a);
       setChart(c);
-    } catch {
-      setError("Impossible de charger les données");
+    } catch (err) {
+      if (!isMounted.current) return;
+      setError(
+        getFetchErrorMessage(err, {
+          timeout:
+            "La connexion est trop lente. Cliquez sur actualiser pour réessayer.",
+          fallback:
+            "Impossible de charger les données. Vérifiez que le backend est démarré.",
+        }),
+      );
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (isMounted.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, []);
 
   useEffect(() => {
+    isMounted.current = true;
     load();
+    return () => {
+      isMounted.current = false;
+    };
   }, [load]);
 
   const chartMax = Math.max(...chart.map((d) => d.count), 1);
@@ -124,14 +171,30 @@ function AdminOverview() {
     <div className="dash-panels">
       {error && (
         <div className="auth-error-banner" role="alert">
+          <i className="bi bi-exclamation-circle-fill" aria-hidden="true" />
           <span>{error}</span>
+          <button
+            type="button"
+            style={{
+              marginLeft: "auto",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "inherit",
+            }}
+            onClick={() => load(true)}
+            aria-label="Réessayer"
+          >
+            <i className="bi bi-arrow-clockwise" />
+          </button>
         </div>
       )}
 
       <section className="dash-welcome dash-welcome--admin">
         <div className="dash-welcome__content">
           <span className="dash-welcome__tag dash-welcome__tag--admin">
-            <i className="bi bi-shield-check" aria-hidden="true" /> Administration
+            <i className="bi bi-shield-check" aria-hidden="true" />{" "}
+            Administration
           </span>
           <h2>Pilotage du centre en temps réel</h2>
           <p>Données chargées depuis la base de données.</p>
@@ -146,7 +209,10 @@ function AdminOverview() {
           >
             <i className="bi bi-arrow-clockwise" aria-hidden="true" />
           </button>
-          <div className="dash-welcome__visual dash-welcome__visual--admin" aria-hidden="true">
+          <div
+            className="dash-welcome__visual dash-welcome__visual--admin"
+            aria-hidden="true"
+          >
             <i className="bi bi-bar-chart-fill" />
           </div>
         </div>
@@ -154,10 +220,13 @@ function AdminOverview() {
 
       {loading ? (
         <SkeletonStats count={4} />
-      ) : (
+      ) : stats ? (
         <>
           <div className="dash-stats dash-stats--4">
-            <article className="dash-stat-card dash-stat-card--live" style={{ "--stagger": 0 }}>
+            <article
+              className="dash-stat-card dash-stat-card--live"
+              style={{ "--stagger": 0 }}
+            >
               <div className="dash-stat-card__icon dash-stat-card__icon--blue">
                 <i className="bi bi-people-fill" aria-hidden="true" />
               </div>
@@ -168,7 +237,10 @@ function AdminOverview() {
                 <span>Patients</span>
               </div>
             </article>
-            <article className="dash-stat-card dash-stat-card--live" style={{ "--stagger": 1 }}>
+            <article
+              className="dash-stat-card dash-stat-card--live"
+              style={{ "--stagger": 1 }}
+            >
               <div className="dash-stat-card__icon dash-stat-card__icon--green">
                 <i className="bi bi-calendar-check" aria-hidden="true" />
               </div>
@@ -179,7 +251,10 @@ function AdminOverview() {
                 <span>RDV aujourd&apos;hui</span>
               </div>
             </article>
-            <article className="dash-stat-card dash-stat-card--live" style={{ "--stagger": 2 }}>
+            <article
+              className="dash-stat-card dash-stat-card--live"
+              style={{ "--stagger": 2 }}
+            >
               <div className="dash-stat-card__icon dash-stat-card__icon--orange">
                 <i className="bi bi-person-plus-fill" aria-hidden="true" />
               </div>
@@ -190,7 +265,10 @@ function AdminOverview() {
                 <span>Nouveaux ce mois</span>
               </div>
             </article>
-            <article className="dash-stat-card dash-stat-card--live" style={{ "--stagger": 3 }}>
+            <article
+              className="dash-stat-card dash-stat-card--live"
+              style={{ "--stagger": 3 }}
+            >
               <div className="dash-stat-card__icon dash-stat-card__icon--purple">
                 <i className="bi bi-hourglass-split" aria-hidden="true" />
               </div>
@@ -207,16 +285,22 @@ function AdminOverview() {
             <section className="dash-card">
               <div className="dash-card__head">
                 <h3>Planning du jour</h3>
-                <span className="dash-pill dash-pill--ok">{today.length} RDV</span>
+                <span className="dash-pill dash-pill--ok">
+                  {today.length} RDV
+                </span>
               </div>
               {today.length === 0 ? (
-                <p className="dash-intro">Aucun rendez-vous aujourd&apos;hui.</p>
+                <p className="dash-intro">
+                  Aucun rendez-vous aujourd&apos;hui.
+                </p>
               ) : (
                 <ul className="dash-appointment-list">
                   {today.map((r) => (
                     <li key={r.id} className="dash-appointment-item">
                       <div className="dash-appointment-item__date">
-                        <strong>{formatAppointmentTime(r.appointmentDateTime)}</strong>
+                        <strong>
+                          {formatAppointmentTime(r.appointmentDateTime)}
+                        </strong>
                       </div>
                       <div className="dash-appointment-item__info">
                         <strong>
@@ -241,22 +325,34 @@ function AdminOverview() {
               ) : (
                 <ul className="dash-activity-feed">
                   {activity.map((item) => (
-                    <li key={`${item.kind}-${item.at}-${item.patientName}`} className="dash-activity-feed__item">
-                      <span className={`dash-activity-feed__icon dash-activity-feed__icon--${item.kind === "NEW_PATIENT" ? "user" : "rdv"}`}>
+                    <li
+                      key={`${item.kind}-${item.at}-${item.patientName}`}
+                      className="dash-activity-feed__item"
+                    >
+                      <span
+                        className={`dash-activity-feed__icon dash-activity-feed__icon--${item.kind === "NEW_PATIENT" ? "user" : "rdv"}`}
+                      >
                         <i className={`bi ${item.icon}`} aria-hidden="true" />
                       </span>
                       <div className="dash-activity-feed__body">
                         <div className="dash-activity-feed__row">
                           <strong>{item.patientName}</strong>
                           {item.status && (
-                            <span className={`dash-pill dash-pill--${activityStatusPill(item.status)}`}>
+                            <span
+                              className={`dash-pill dash-pill--${activityStatusPill(item.status)}`}
+                            >
                               {activityStatusLabel(item.status)}
                             </span>
                           )}
                         </div>
-                        <span className="dash-activity-feed__detail">{item.detail}</span>
+                        <span className="dash-activity-feed__detail">
+                          {item.detail}
+                        </span>
                       </div>
-                      <time className="dash-activity-feed__time" dateTime={item.at}>
+                      <time
+                        className="dash-activity-feed__time"
+                        dateTime={item.at}
+                      >
                         {formatActivityTime(item.at)}
                       </time>
                     </li>
@@ -285,7 +381,7 @@ function AdminOverview() {
             </div>
           </section>
         </>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -295,22 +391,38 @@ function AdminPatients() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const isMounted = useRef(true);
 
   const load = useCallback(async (q) => {
     setLoading(true);
     setError("");
     try {
-      setPatients(await getPatients(q));
-    } catch {
-      setError("Impossible de charger les patients");
+      const data = await withTimeout(getPatients(q));
+      if (isMounted.current) setPatients(data);
+    } catch (err) {
+      if (!isMounted.current) return;
+      setError(
+        getFetchErrorMessage(err, {
+          timeout: "Délai dépassé. Réessayez.",
+          fallback: "Impossible de charger les patients",
+        }),
+      );
       setPatients([]);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => load(search), 300);
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const delay = search ? 300 : 0;
+    const t = setTimeout(() => load(search), delay);
     return () => clearTimeout(t);
   }, [search, load]);
 
@@ -331,6 +443,19 @@ function AdminPatients() {
       {error && (
         <div className="auth-error-banner" role="alert">
           <span>{error}</span>
+          <button
+            type="button"
+            style={{
+              marginLeft: "auto",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "inherit",
+            }}
+            onClick={() => load(search)}
+          >
+            <i className="bi bi-arrow-clockwise" />
+          </button>
         </div>
       )}
 
@@ -361,7 +486,9 @@ function AdminPatients() {
                     <td>{p.email}</td>
                     <td>{p.appointmentCount}</td>
                     <td>
-                      <span className={`dash-pill dash-pill--${patientStatusPill(p.status)}`}>
+                      <span
+                        className={`dash-pill dash-pill--${patientStatusPill(p.status)}`}
+                      >
                         {p.status}
                       </span>
                     </td>
@@ -381,7 +508,9 @@ function AdminPatients() {
                   </strong>
                   <span>{p.email}</span>
                 </div>
-                <span className={`dash-pill dash-pill--${patientStatusPill(p.status)}`}>
+                <span
+                  className={`dash-pill dash-pill--${patientStatusPill(p.status)}`}
+                >
                   {p.status}
                 </span>
               </li>
@@ -398,22 +527,34 @@ function AdminAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const isMounted = useRef(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      setAppointments(await getAllAppointments());
-    } catch {
-      setError("Impossible de charger les rendez-vous");
+      const data = await withTimeout(getAllAppointments());
+      if (isMounted.current) setAppointments(data);
+    } catch (err) {
+      if (!isMounted.current) return;
+      setError(
+        getFetchErrorMessage(err, {
+          timeout: "Délai dépassé. Réessayez.",
+          fallback: "Impossible de charger les rendez-vous",
+        }),
+      );
       setAppointments([]);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    isMounted.current = true;
     load();
+    return () => {
+      isMounted.current = false;
+    };
   }, [load]);
 
   const handleStatus = async (id, status) => {
@@ -421,9 +562,7 @@ function AdminAppointments() {
     try {
       await updateAppointmentStatus(id, status);
       await load();
-      if (status === "CONFIRME") {
-        toast.success("Rendez-vous confirmé");
-      }
+      if (status === "CONFIRME") toast.success("Rendez-vous confirmé");
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -441,6 +580,19 @@ function AdminAppointments() {
       {error && (
         <div className="auth-error-banner" role="alert">
           <span>{error}</span>
+          <button
+            type="button"
+            style={{
+              marginLeft: "auto",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "inherit",
+            }}
+            onClick={load}
+          >
+            <i className="bi bi-arrow-clockwise" />
+          </button>
         </div>
       )}
 
@@ -451,7 +603,10 @@ function AdminAppointments() {
       ) : (
         <ul className="dash-appointment-list dash-appointment-list--full">
           {active.map((r) => (
-            <li key={r.id} className="dash-appointment-item dash-appointment-item--card">
+            <li
+              key={r.id}
+              className="dash-appointment-item dash-appointment-item--card"
+            >
               <div className="dash-appointment-item__date">
                 <strong>{formatAppointmentTime(r.appointmentDateTime)}</strong>
                 <small>{formatAppointmentDate(r.appointmentDateTime)}</small>
@@ -465,7 +620,9 @@ function AdminAppointments() {
                 </span>
               </div>
               <div className="dash-simple-list__actions">
-                <span className={`dash-pill dash-pill--${getStatusPillClass(r.status)}`}>
+                <span
+                  className={`dash-pill dash-pill--${getStatusPillClass(r.status)}`}
+                >
                   {getStatusLabel(r.status)}
                 </span>
                 {r.status === "EN_ATTENTE" && (
@@ -502,12 +659,23 @@ function AdminSettings() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const isMounted = useRef(true);
 
   useEffect(() => {
-    getAdminSettings()
-      .then(setForm)
-      .catch(() => setError("Impossible de charger les paramètres"))
-      .finally(() => setLoading(false));
+    isMounted.current = true;
+    withTimeout(getAdminSettings())
+      .then((data) => {
+        if (isMounted.current) setForm(data);
+      })
+      .catch(() => {
+        if (isMounted.current) setError("Impossible de charger les paramètres");
+      })
+      .finally(() => {
+        if (isMounted.current) setLoading(false);
+      });
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   const handleSubmit = async (e) => {
@@ -567,7 +735,11 @@ function AdminSettings() {
               required
             />
           </label>
-          <button type="submit" className="dash-btn dash-btn--primary" disabled={saving}>
+          <button
+            type="submit"
+            className="dash-btn dash-btn--primary"
+            disabled={saving}
+          >
             {saving ? "Enregistrement..." : "Enregistrer"}
           </button>
         </form>

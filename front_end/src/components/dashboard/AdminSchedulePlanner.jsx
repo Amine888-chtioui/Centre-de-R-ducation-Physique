@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getAdminSchedule, updateAdminSchedule } from "../../services/admin";
+import { getFetchErrorMessage } from "../../config/api";
+import { withTimeout } from "../../utils/withTimeout";
 
 const WEEKDAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
 const WEEKEND = ["SATURDAY", "SUNDAY"];
@@ -70,6 +72,7 @@ export default function AdminSchedulePlanner() {
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const isMounted = useRef(true);
 
   const selectedDay = days[selectedDayIndex];
   const selectedDayActive = useMemo(
@@ -83,19 +86,30 @@ export default function AdminSchedulePlanner() {
     setError("");
     setSuccess("");
     try {
-      const data = await getAdminSchedule();
+      const data = await withTimeout(getAdminSchedule());
+      if (!isMounted.current) return;
       setDays(cloneMatrix(data.days));
       setActiveCount(data.activeSlotsCount ?? 0);
       setDirty(false);
-    } catch {
-      setError("Impossible de charger le planning");
+    } catch (err) {
+      if (!isMounted.current) return;
+      setError(
+        getFetchErrorMessage(err, {
+          timeout: "Délai dépassé. Réessayez.",
+          fallback: "Impossible de charger le planning",
+        }),
+      );
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    isMounted.current = true;
     load();
+    return () => {
+      isMounted.current = false;
+    };
   }, [load]);
 
   const recount = (nextDays) => {
@@ -194,7 +208,22 @@ export default function AdminSchedulePlanner() {
     <div className="schedule-planner dash-panels">
       {error && (
         <div className="auth-error-banner" role="alert">
+          <i className="bi bi-exclamation-circle-fill" aria-hidden="true" />
           <span>{error}</span>
+          <button
+            type="button"
+            style={{
+              marginLeft: "auto",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "inherit",
+            }}
+            onClick={load}
+            aria-label="Réessayer"
+          >
+            <i className="bi bi-arrow-clockwise" />
+          </button>
         </div>
       )}
       {success && (

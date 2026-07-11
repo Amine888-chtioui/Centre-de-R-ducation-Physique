@@ -8,7 +8,7 @@ import { getApiBaseUrl } from "../config/api";
  */
 const api = axios.create({
   baseURL: getApiBaseUrl(),
-  timeout: 20000,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },

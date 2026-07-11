@@ -113,11 +113,13 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // Dev : Vite (localhost, IP LAN, émulateur mobile)
+        // Prod : frontend déployé sur Vercel
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "http://127.0.0.1:*",
                 "http://192.168.*:*",
-                "http://10.*:*"
+                "http://10.*:*",
+                "https://centre-de-r-ducation-physique.vercel.app"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

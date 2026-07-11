@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { getDashboardPath } from "../../utils/auth";
+import { getApiBaseUrl } from "../../config/api";
 
 export default function LoginPage({ onSwitchToRegister, onSwitchToForgot, onClose }) {
   const { saveAuth } = useAuth();
@@ -64,7 +65,8 @@ export default function LoginPage({ onSwitchToRegister, onSwitchToForgot, onClos
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "/oauth2/authorization/google";
+    const backendOrigin = getApiBaseUrl().replace(/\/api$/, "");
+    window.location.href = `${backendOrigin}/oauth2/authorization/google`;
   };
 
   return (

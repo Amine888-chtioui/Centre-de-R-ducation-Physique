@@ -60,7 +60,7 @@ public class AppointmentService {
                 .orElse(null);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<DayAvailabilityDto> getAvailableDays(LocalDate start, int daysAhead) {
         getCurrentUser();
         LocalDate today = LocalDate.now();
@@ -96,7 +96,7 @@ public class AppointmentService {
         return result;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<SlotAvailabilityDto> getAvailableSlots(LocalDate date) {
         getCurrentUser();
         if (date == null) {

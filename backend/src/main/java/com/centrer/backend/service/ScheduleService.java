@@ -90,14 +90,18 @@ public class ScheduleService {
                 .orElse(false);
     }
 
-    public boolean hasActiveHourOnDay(DayOfWeek dayOfWeek) {
+    /**
+     * Charge tous les créneaux actifs en une seule requête, pour éviter le
+     * N+1 (une requête par jour/heure) lors du calcul des disponibilités sur
+     * une plage de jours (voir AppointmentService.getAvailableDays/Slots).
+     */
+    public Map<String, Boolean> getActiveMap() {
         ensureDefaultSchedule();
-        for (int hour = OPEN_HOUR; hour <= CLOSE_HOUR; hour++) {
-            if (isSlotActive(dayOfWeek, hour)) {
-                return true;
-            }
-        }
-        return false;
+        return loadActiveMap();
+    }
+
+    public boolean isActive(DayOfWeek dayOfWeek, int hour, Map<String, Boolean> activeMap) {
+        return Boolean.TRUE.equals(activeMap.get(key(dayOfWeek, hour)));
     }
 
     public List<Integer> getActiveHours(DayOfWeek dayOfWeek) {

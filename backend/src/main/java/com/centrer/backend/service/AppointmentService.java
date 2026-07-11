@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -78,13 +79,13 @@ public class AppointmentService {
         }
         int days = (int) ChronoUnit.DAYS.between(rangeStart, end) + 1;
 
+        Map<String, Boolean> activeMap = scheduleService.getActiveMap();
         Set<LocalDateTime> occupied = loadOccupiedSlots(rangeStart.atStartOfDay(), end.atTime(23, 59, 59));
 
         List<DayAvailabilityDto> result = new ArrayList<>();
         for (int i = 0; i < days; i++) {
             LocalDate date = rangeStart.plusDays(i);
-            boolean available = scheduleService.hasActiveHourOnDay(date.getDayOfWeek())
-                    && hasFreeSlot(date, occupied);
+            boolean available = hasFreeSlot(date, occupied, activeMap);
             String label = date.getDayOfWeek()
                     .getDisplayName(TextStyle.SHORT, Locale.FRENCH);
             result.add(DayAvailabilityDto.builder()
@@ -103,6 +104,7 @@ public class AppointmentService {
             throw new RuntimeException("Date invalide");
         }
 
+        Map<String, Boolean> activeMap = scheduleService.getActiveMap();
         Set<LocalDateTime> occupied = loadOccupiedSlots(
                 date.atStartOfDay(),
                 date.atTime(23, 59, 59)
@@ -113,7 +115,7 @@ public class AppointmentService {
 
         for (int hour = ScheduleService.OPEN_HOUR; hour <= ScheduleService.CLOSE_HOUR; hour++) {
             LocalDateTime slot = date.atTime(hour, 0);
-            boolean available = scheduleService.isSlotActive(date, hour)
+            boolean available = scheduleService.isActive(date.getDayOfWeek(), hour, activeMap)
                     && slot.isAfter(now)
                     && !occupied.contains(slot);
 
@@ -226,13 +228,10 @@ public class AppointmentService {
         return occupied;
     }
 
-    private boolean hasFreeSlot(LocalDate date, Set<LocalDateTime> occupied) {
-        if (!scheduleService.hasActiveHourOnDay(date.getDayOfWeek())) {
-            return false;
-        }
+    private boolean hasFreeSlot(LocalDate date, Set<LocalDateTime> occupied, Map<String, Boolean> activeMap) {
         LocalDateTime now = LocalDateTime.now();
         for (int hour = ScheduleService.OPEN_HOUR; hour <= ScheduleService.CLOSE_HOUR; hour++) {
-            if (!scheduleService.isSlotActive(date, hour)) {
+            if (!scheduleService.isActive(date.getDayOfWeek(), hour, activeMap)) {
                 continue;
             }
             LocalDateTime slot = date.atTime(hour, 0);

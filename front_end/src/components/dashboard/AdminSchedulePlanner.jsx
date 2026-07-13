@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getAdminSchedule, updateAdminSchedule } from "../../services/admin";
 import { getFetchErrorMessage } from "../../config/api";
 import { withTimeout } from "../../utils/withTimeout";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 const WEEKDAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
 const WEEKEND = ["SATURDAY", "SUNDAY"];
@@ -201,7 +202,7 @@ export default function AdminSchedulePlanner() {
   };
 
   if (loading) {
-    return <p className="booking-loading">Chargement du planning…</p>;
+    return <LoadingSpinner text="Chargement du planning…" />;
   }
 
   return (

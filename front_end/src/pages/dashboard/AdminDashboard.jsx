@@ -17,6 +17,7 @@ import {
 import AdminSchedulePlanner from "../../components/dashboard/AdminSchedulePlanner";
 import CountUp from "../../components/ui/CountUp";
 import { SkeletonStats } from "../../components/ui/Skeleton";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
 import { useToast } from "../../context/ToastContext";
 import {
   formatAppointmentDate,
@@ -474,7 +475,7 @@ function AdminPatients() {
       )}
 
       {loading ? (
-        <p className="dash-intro">Chargement...</p>
+        <LoadingSpinner />
       ) : patients.length === 0 ? (
         <p className="dash-intro">Aucun patient trouvé.</p>
       ) : (
@@ -676,7 +677,7 @@ function AdminAppointments() {
       )}
 
       {loading ? (
-        <p className="dash-intro">Chargement...</p>
+        <LoadingSpinner />
       ) : active.length === 0 ? (
         <p className="dash-intro">Aucun rendez-vous enregistré.</p>
       ) : (
@@ -784,7 +785,7 @@ function AdminSettings() {
     }
   };
 
-  if (loading) return <p className="dash-intro">Chargement...</p>;
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="dash-panels">
@@ -883,7 +884,7 @@ function PatientDetailModal({ patientId, onClose, onBookAppointment }) {
         </button>
 
         {loading ? (
-          <p className="dash-intro">Chargement...</p>
+          <LoadingSpinner />
         ) : error || !detail ? (
           <p className="dash-intro">{error || "Patient introuvable"}</p>
         ) : (

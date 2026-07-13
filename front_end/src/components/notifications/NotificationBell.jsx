@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNotifications } from "../../context/NotificationContext";
+import LoadingSpinner from "../ui/LoadingSpinner";
 import "./notifications.css";
 
 function formatTimeAgo(iso) {
@@ -427,7 +428,7 @@ export default function NotificationBell({ onNavigate }) {
 
         <div className="notif-panel__body">
           {loading && items.length === 0 && (
-            <p className="notif-panel__empty">Chargement…</p>
+            <LoadingSpinner text="Chargement…" />
           )}
           {!loading && items.length === 0 && (
             <div className="notif-panel__empty-state">

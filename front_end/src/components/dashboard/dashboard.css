@@ -1850,6 +1850,43 @@
   line-height: 1.5;
 }
 
+/* ─── Spinner de chargement (cohérent avec la page de redirection OAuth2) ─── */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+}
+
+.loading-spinner__circle {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--gray-soft);
+  border-top-color: var(--blue-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.loading-spinner__text {
+  font-size: 0.9rem;
+  color: var(--gray-text);
+  margin: 0;
+}
+
+.loading-spinner--inline {
+  flex-direction: row;
+  padding: 0;
+  gap: 0.5rem;
+}
+
+.loading-spinner--inline .loading-spinner__circle {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
 .dash-simple-card {
   display: flex;
   gap: 1rem;
@@ -2988,6 +3025,7 @@ button.dash-menu-list__item {
   .ui-skeleton,
   .dash-refresh-btn--spin i,
   .dash-spin,
+  .loading-spinner__circle,
   .dash-modal {
     animation: none !important;
   }

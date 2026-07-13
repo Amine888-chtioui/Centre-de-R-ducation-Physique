@@ -6,6 +6,7 @@ import {
   getAvailableSlots,
   rescheduleAppointment,
 } from "../../services/appointments";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 function formatDayNum(dateStr) {
   return new Date(dateStr + "T12:00:00").getDate();
@@ -201,7 +202,7 @@ export default function AppointmentForm({
         </div>
 
         {loadingDays ? (
-          <p className="booking-loading">Chargement des jours...</p>
+          <LoadingSpinner text="Chargement des jours..." inline />
         ) : days.length === 0 ? (
           <p className="booking-loading">
             Aucune date disponible pour ce mois.
@@ -241,7 +242,7 @@ export default function AppointmentForm({
           <p className="booking-hint">Chaque séance dure 1 heure.</p>
 
           {loadingSlots ? (
-            <p className="booking-loading">Chargement des horaires...</p>
+            <LoadingSpinner text="Chargement des horaires..." inline />
           ) : (
             <div className="booking-grid booking-grid--hours" role="list">
               {slots.map((slot) => (

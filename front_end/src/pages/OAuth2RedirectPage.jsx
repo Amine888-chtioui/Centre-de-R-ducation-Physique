@@ -50,21 +50,8 @@ export default function OAuth2RedirectPage() {
 
   return (
     <div className="oauth-redirect-page">
-      <div className="oauth-redirect-card">
-        <div className="oauth-redirect-logo" aria-hidden="true">
-          <i className="bi bi-person-arms-up"></i>
-        </div>
-        <h1 className="oauth-redirect-title">Connexion en cours...</h1>
-        <p className="oauth-redirect-subtitle">
-          Merci de patienter, nous finalisons votre connexion à votre espace
-          Centre de Rééducation Physique.
-        </p>
-        <div className="oauth-redirect-dots" aria-hidden="true">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
+      <div className="oauth-redirect-spinner" aria-hidden="true"></div>
+      <p className="oauth-redirect-text">Chargement en cours...</p>
     </div>
   );
 }

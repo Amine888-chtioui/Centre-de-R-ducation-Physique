@@ -729,16 +729,6 @@ function AdminAppointments() {
         </ul>
       )}
 
-      <button
-        type="button"
-        className="dash-fab ui-press"
-        onClick={() => setShowBooking(true)}
-        aria-label="Nouveau rendez-vous"
-        title="Nouveau rendez-vous"
-      >
-        <i className="bi bi-plus-lg" aria-hidden="true" />
-      </button>
-
       {showBooking && (
         <NewAppointmentModal
           onClose={() => setShowBooking(false)}

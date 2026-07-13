@@ -590,12 +590,20 @@ function AdminPatients() {
   );
 }
 
+const APPOINTMENT_DATE_FILTERS = [
+  { id: "all", label: "Tous" },
+  { id: "today", label: "Aujourd'hui" },
+  { id: "tomorrow", label: "Demain" },
+  { id: "week", label: "Cette semaine" },
+];
+
 function AdminAppointments() {
   const toast = useToast();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showBooking, setShowBooking] = useState(false);
+  const [dateFilter, setDateFilter] = useState("all");
   const isMounted = useRef(true);
 
   const load = useCallback(async () => {
@@ -642,7 +650,41 @@ function AdminAppointments() {
     }
   };
 
-  const active = appointments.filter((a) => a.status !== "ANNULE");
+  const active = useMemo(
+    () => appointments.filter((a) => a.status !== "ANNULE"),
+    [appointments],
+  );
+
+  // Un seul passage sur `active` par chargement : classer aujourd'hui/demain/semaine
+  // ici puis ne faire qu'un accès O(1) par clic d'onglet, plutôt que refiltrer
+  // toute la liste à chaque changement de filtre.
+  const dateBuckets = useMemo(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfTomorrow = new Date(startOfToday.getTime() + 86400000);
+    const startOfDayAfter = new Date(startOfTomorrow.getTime() + 86400000);
+    const startOfNextWeek = new Date(startOfToday.getTime() + 7 * 86400000);
+
+    const buckets = { today: [], tomorrow: [], week: [] };
+    for (const a of active) {
+      const dt = new Date(a.appointmentDateTime);
+      if (dt >= startOfToday && dt < startOfNextWeek) buckets.week.push(a);
+      if (dt >= startOfToday && dt < startOfTomorrow) buckets.today.push(a);
+      else if (dt >= startOfTomorrow && dt < startOfDayAfter) buckets.tomorrow.push(a);
+    }
+    return buckets;
+  }, [active]);
+
+  const visible = dateFilter === "all" ? active : dateBuckets[dateFilter];
+
+  const emptyMessage =
+    dateFilter === "today"
+      ? "Aucun rendez-vous aujourd'hui."
+      : dateFilter === "tomorrow"
+        ? "Aucun rendez-vous demain."
+        : dateFilter === "week"
+          ? "Aucun rendez-vous cette semaine."
+          : "Aucun rendez-vous enregistré.";
 
   return (
     <div className="dash-panels">
@@ -665,13 +707,34 @@ function AdminAppointments() {
         </div>
       )}
 
+      {!loading && (
+        <div className="dash-subtabs" role="tablist">
+          {APPOINTMENT_DATE_FILTERS.map((f) => {
+            const count = f.id === "all" ? active.length : dateBuckets[f.id].length;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                role="tab"
+                aria-selected={dateFilter === f.id}
+                className={`dash-subtabs__btn ${dateFilter === f.id ? "dash-subtabs__btn--active" : ""}`}
+                onClick={() => setDateFilter(f.id)}
+              >
+                {f.label}
+                {count > 0 && <span className="dash-subtabs__count">{count}</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {loading ? (
         <LoadingSpinner />
-      ) : active.length === 0 ? (
-        <p className="dash-intro">Aucun rendez-vous enregistré.</p>
+      ) : visible.length === 0 ? (
+        <p className="dash-intro">{emptyMessage}</p>
       ) : (
         <ul className="dash-appointment-list dash-appointment-list--full">
-          {active.map((r) => (
+          {visible.map((r) => (
             <li
               key={r.id}
               className="dash-appointment-item dash-appointment-item--card"

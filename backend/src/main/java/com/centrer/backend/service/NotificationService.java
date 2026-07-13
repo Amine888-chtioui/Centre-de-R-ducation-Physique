@@ -169,6 +169,29 @@ public class NotificationService {
         }
     }
 
+    public void onAppointmentExpired(Appointment appointment) {
+        User patient = appointment.getUser();
+        String when = appointment.getAppointmentDateTime().format(DATE_FMT);
+
+        notifyUser(
+                patient.getId(),
+                NotificationType.APPOINTMENT_EXPIRED,
+                "Rendez-vous annulé automatiquement",
+                "Votre demande du " + when + " a été annulée automatiquement : la date est passée sans confirmation.",
+                "bi-calendar-x-fill",
+                "appointments",
+                appointment.getId()
+        );
+        notifyAdmins(
+                NotificationType.APPOINTMENT_EXPIRED,
+                "RDV annulé automatiquement",
+                patient.getPrenom() + " " + patient.getNom() + " — " + appointment.getType() + " · " + when + " (non confirmé, date passée)",
+                "bi-calendar-x-fill",
+                "appointments",
+                appointment.getId()
+        );
+    }
+
     public void onNewPatientRegistered(User patient) {
         notifyAdmins(
                 NotificationType.NEW_PATIENT,

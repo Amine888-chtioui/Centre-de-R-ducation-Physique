@@ -21,6 +21,7 @@ function iconTone(type) {
       return "notif-icon--success";
     case "APPOINTMENT_REFUSED":
     case "APPOINTMENT_CANCELLED":
+    case "APPOINTMENT_EXPIRED":
       return "notif-icon--danger";
     case "NEW_PATIENT":
       return "notif-icon--info";

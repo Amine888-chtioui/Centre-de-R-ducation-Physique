@@ -85,6 +85,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("end") LocalDateTime end
     );
 
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.user " +
+            "WHERE a.status = :status AND a.appointmentDateTime < :now")
+    List<Appointment> findExpiredByStatus(
+            @Param("status") AppointmentStatus status,
+            @Param("now") LocalDateTime now
+    );
+
     // @Transactional ici (et pas seulement sur l'appelant) : chaque marquage doit
     // rester atomique et indépendant des autres rendez-vous du même lot. Sans
     // transaction propre, cette requête @Modifying lève
